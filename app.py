@@ -1,8 +1,6 @@
 import html
-import json
-import requests
 from flask import Flask, render_template, request, jsonify
-from requests import JSONDecodeError
+from emby.add_user import add_user
 
 app = Flask(__name__)
 
@@ -21,15 +19,7 @@ def register():
     email = data.get('email')
 
     # todo 添加代码将数据保存到数据库
-    url = "http://nas.biupiaa.top:8096/emby/Users/New?api_key=4ba3d6690162400ea8ae536f3468928c"
-    payload = json.dumps({
-        "Name": username
-    })
-    headers = {
-        'Content-Type': 'application/json'
-    }
-
-    response = requests.request("POST", url, headers=headers, data=payload)
+    response = add_user(username, password)
     if response.status_code == 200:
         resp_json = response.json()
         name = resp_json.get("Name")
@@ -38,7 +28,9 @@ def register():
         user_id = resp_json.get("Id")
         # 返回一个成功消息
         return jsonify(
-            {"status": "success", "message": f"Registration successful for username: {name}, server_id: {server_id}, server_name: {server_name}, id: {user_id}"})
+            {"status": "success",
+             "message": f"Registration successful for username: {name}, server_id: {server_id}, server_name: "
+                        f"{server_name}, id: {user_id}"})
     else:
         resp_text = response.text
         resp_text = html.unescape(resp_text)
