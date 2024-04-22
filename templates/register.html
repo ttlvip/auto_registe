@@ -3,35 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <title>注册</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        $(document).ready(function () {
-            $('form').on('submit', function (event) {
-                event.preventDefault(); // 阻止表单默认提交行为
-
-                // 使用 AJAX 提交表单数据
-                fetch('/register', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        username: $("#username").val(),
-                        password: $("#password").val(),
-                        email: $("#email").val()
-                    }) // 替换为你要发送的数据
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        alert(data.message);
-                    })
-                    .catch(error => {
-                        // 处理错误
-                    });
-            });
-        });
-    </script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -90,9 +65,68 @@
     <form action="/register" method="post">
         <input id="username" type="text" name="username" placeholder="用户名" required>
         <input id="password" type="password" name="password" placeholder="密码" required>
-        <input id="email" type="email" name="email" placeholder="电子邮件" required>
+        <input id="confirm-password" type="password" name="confirm-password" placeholder="确认密码" required>
         <button type="submit">注册</button>
     </form>
 </div>
+<script>
+    $(document).ready(function () {
+        // 监听表单提交事件
+        $('form').on('submit', function (event) {
+            event.preventDefault(); // 阻止表单默认提交行为
+            // 提交表单前验证密码是否输入一致
+            let password = $("#password").val();
+            let confirmed = $("#confirm-password").val();
+            if (password !== confirmed) {
+                $("#password-error").text("两次输入的密码不一致, 请重新输入!");
+            } else {
+                // 使用 AJAX 提交表单数据
+                fetch('/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: $("#username").val(),
+                        password: password
+                    })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        // 获取服务端返回的数据
+                        let message = data.message;
+                        // message中包含 转义后的 单引号 字符串, 需要将其转义
+                        message = message.replace(/&#39;/g, '\'');
+
+                        // 判断服务端返回的 code
+                        if (data.code === 200) {
+                            // 注册成功, 点击确认后刷新该页面
+                            swal({
+                                title: '注册成功!',
+                                text: message,
+                                icon: 'success',
+                                button: '好的'
+                            }).then(function () {
+                                window.location.reload();
+                            })
+                        } else {
+                            // 注册失败
+                            swal({
+                                title: '注册失败!',
+                                text: message,
+                                icon: 'error',
+                                button: '好的'
+                            }).then(function () {
+                                window.location.reload();
+                            })
+                        }
+                    })
+                    .catch(error => {
+                        alert(error);
+                    });
+            }
+        });
+    });
+</script>
 </body>
 </html>
