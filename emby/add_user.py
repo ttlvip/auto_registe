@@ -3,7 +3,7 @@ import os
 import json
 import requests
 
-domain = os.getenv('DOMAIN', '127.17.0.5')
+domain = os.getenv('DOMAIN', '172.17.0.1')
 port = os.environ.get('PORT', '8096')
 api_key = os.environ.get('API_KEY')
 copy_user_id = os.environ.get('COPY_USER_ID')
